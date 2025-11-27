@@ -4,6 +4,8 @@ class Settings(BaseSettings):
     APP_NAME:str
     APP_VERSION:str
     IMAGE_SIZE:int
+    CONFIDENCE_THRESHOLD:float
+    IOU_THRESHOLD:float
     
     class Config:
         case_sensitive=True
