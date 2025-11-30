@@ -1,39 +1,22 @@
-# AI Recycling System
+# ♻️ AI Recycling System
 
-A web-based application for automatic garbage classification using AI. Users can upload images of waste items, and the system detects, classifies, and provides recycling recommendations. The system also supports batch image processing and annotated images with bounding boxes.
+### **YOLOv11-based Smart Waste Detection | FastAPI Backend | Streamlit Frontend**
 
----
+This project is an end-to-end intelligent waste detection system powered by a **custom-trained YOLOv11 model**.  
+It includes:
 
-## Table of Contents
-
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Endpoints](#api-endpoints)
-- [Frontend](#frontend)
-- [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Features
-
-- Classify individual images of waste items.
-- Batch classification for multiple images at once.
-- Annotated images with bounding boxes for detected objects.
-- Waste category detection: Recyclable, Biodegradable, Non-Recyclable.
-- Recycling recommendations based on detected items.
-- Streamlit-based frontend for easy visualization.
-- REST API using FastAPI.
+- ✔️ YOLOv11 model trained on 6 garbage classes  
+- ✔️ FastAPI backend for image classification & batch processing  
+- ✔️ Streamlit frontend for easy visualization  
+- ✔️ Annotated images with bounding boxes  
+- ✔️ Automatic recycling tips & waste categorization  
 
 ---
 
 ## Technologies Used
 
 - **Backend:** Python, FastAPI, Pydantic
-- **Frontend:** Streamlit, Plotly (for optional visualizations)
+- **Frontend:** Streamlit
 - **AI Model:** YOLO-based classifier or custom CNN for garbage detection
 - **Image Processing:** OpenCV, NumPy, Pillow
 - **Deployment:** Uvicorn (ASGI server)
@@ -53,6 +36,21 @@ This project uses a **custom garbage classification dataset** containing **6 was
 
 ---
 
+## Model Training
+
+Training is done using Ultralytics YOLOv11n:
+
+~~~python
+import os
+from ultralytics import YOLO
+
+model = YOLO("yolo11n.pt")
+results = model.train(
+    data="./dataset/data.yaml",
+    epochs=100
+)
+~~~
+
 ## Installation
 
 1. **Clone the repository:**
@@ -61,32 +59,39 @@ This project uses a **custom garbage classification dataset** containing **6 was
 git clone https://github.com/KHbo7mid/ai_recycling_system.git
 cd ai_recycling_system
 ```
-2.  **Create a virtual environment**
+
+2. **Create a virtual environment**
 
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
 .\venv\Scripts\activate     # Windows
 ```
-3.  **Create a .env file**
+
+3. **Create a .env file**
 
 ```bash
 cp .env.example .env 
 ```
+
 4. **Install dependencies**
+
 * install backend requirements
 
 ```bash
 cd src
 pip install -r requirements.txt 
 ```
+
 * install frontend requirements
+
 ```bash
 cd frontend
 pip install -r requirements.txt 
 ```
 
 5. **Run the backend server**
+
 ```bash
 cd src
 uvicorn src.main:app --reload
@@ -98,3 +103,35 @@ uvicorn src.main:app --reload
 cd frontent
 streamlit run app.py
 ```
+## API Endpoints
+
+* Health Check
+| Method | Endpoint      | Description      |
+| ------ | ------------- | ---------------- |
+| GET    | `/api/health` | API availability |
+
+* Classification
+
+| Method | Endpoint                       | Description                       |
+| ------ | ------------------------------ | --------------------------------- |
+| POST   | `/api/classify`                | Classify a single image           |
+| POST   | `/api/classify/annotate-image` | Return annotated image with boxes |
+
+* Batch Classification
+
+| Method | Endpoint              | Description              |
+| ------ | --------------------- | ------------------------ |
+| POST   | `/api/batch_classify` | Classify multiple images |
+
+* Helper Routes
+
+| Method | Endpoint               | Description                       |
+| ------ | ---------------------- | --------------------------------- |
+| GET    | `/api/recycling-guide` | Retrieve recycling tips           |
+| GET    | `/api/classes`         | Get supported classes information |
+
+
+## 👤 Author
+### Ahmed Khiari 
+AI & Software Engineer
+AI recycling system --2025
