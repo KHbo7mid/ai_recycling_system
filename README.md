@@ -106,6 +106,7 @@ streamlit run app.py
 ## API Endpoints
 
 * Health Check
+  
 | Method | Endpoint      | Description      |
 | ------ | ------------- | ---------------- |
 | GET    | `/api/health` | API availability |
