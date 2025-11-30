@@ -9,7 +9,7 @@ from helpers.constants import (
     WasteCategory
 )
 from Schemas import DetectionResult
-
+import cv2
 logger=logging.getLogger(__name__)
 
 class ClassificationService:
@@ -113,6 +113,66 @@ class ClassificationService:
     @staticmethod
     def get_detailed_class_information():
         return classifier.get_class_info()
+    
+    
+    @staticmethod
+    def _draw_detections(image: np.ndarray, detections: list) -> np.ndarray:
+        """
+        Draw bounding boxes, class names, and confidence scores on the image.
+        Args:
+            image (np.ndarray): Original BGR image.
+            detections (List[DetectionResult]): List of detection results.
+        Returns:
+            np.ndarray: Annotated image.
+        """
+        annotated_image = image.copy()
+
+        for det in detections:
+            # Convert bbox coordinates to integers
+            x1, y1 = int(det.bbox.x1), int(det.bbox.y1)
+            x2, y2 = int(det.bbox.x2), int(det.bbox.y2)
+
+            # Choose color based on waste category
+            if det.waste_category == WasteCategory.RECYCLABLE:
+                color = (0, 255, 0)  # Green
+            elif det.waste_category == WasteCategory.BIODEGRADABLE:
+                color = (0, 165, 255)  # Orange
+            else:
+                color = (0, 0, 255)  # Red for non-recyclable
+
+            # Draw bounding box
+            cv2.rectangle(annotated_image, (x1, y1), (x2, y2), color, 2)
+
+            # Prepare label text
+            label = f"{det.class_name} ({det.confidence*100:.1f}%)"
+
+            # Calculate text size
+            (text_width, text_height), baseline = cv2.getTextSize(
+                label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
+            )
+
+            # Draw filled rectangle behind text for readability
+            cv2.rectangle(
+                annotated_image,
+                (x1, y1 - text_height - baseline),
+                (x1 + text_width, y1),
+                color,
+                thickness=cv2.FILLED
+            )
+
+            # Put text on image
+            cv2.putText(
+                annotated_image,
+                label,
+                (x1, y1 - baseline),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (255, 255, 255),  # White text
+                1,
+                lineType=cv2.LINE_AA
+            )
+
+        return annotated_image
                 
             
         

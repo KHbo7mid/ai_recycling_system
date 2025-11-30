@@ -3,7 +3,7 @@ from typing import Optional,List
 from .classificationResponse import ClassificationResponse
 
 class BatchClassificationResult(BaseModel):
-    filename: str
+    filename: Optional[str]
     result: Optional[ClassificationResponse] = None
     error: Optional[str] = None
 

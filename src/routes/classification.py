@@ -1,18 +1,18 @@
-from fastapi import APIRouter,UploadFile,File,HTTPException,Depends,status
-from fastapi.responses import JSONResponse 
-from Schemas.classificationResponse import ClassificationResponse
+from fastapi import APIRouter,UploadFile,File,HTTPException,status
+from fastapi.responses import StreamingResponse
+from Schemas import ClassificationResponse
 import logging
 from helpers.Settings import get_settings
 import numpy as np
-import cv2
+import cv2 ,io 
 from typing import List
-from Schemas.info import ClassInfo
-from Services.classification import ClassificationService
+from Schemas import ClassInfo
+from Services import ClassificationService
 logger=logging.getLogger(__name__)
 
-router=APIRouter(prefix="/api",tags=["Classification"])
+router_classify=APIRouter(prefix="/api/classify",tags=["Classification"])
 
-@router.post("/classify",response_model=ClassificationResponse)
+@router_classify.post("",response_model=ClassificationResponse)
 async def classify_image(file:UploadFile = File(...)):
     if file.content_type not in get_settings.ALLOWED_IMAGE_TYPES:
         raise HTTPException(
@@ -58,16 +58,38 @@ async def classify_image(file:UploadFile = File(...)):
             detail="Error processing image. Please try again."
         )
         
-        
-@router.get("/classes",response_model=List[ClassInfo])
-async def get_classes():
-    """Get detailed information about all available garbage classes"""
+@router_classify.post("/annotate-image")       
+async def classify_with_annotated_image(file:UploadFile=File(...)):
+    """Classify image and return annotated image with bounding boxes."""
     try:
-        class_info=ClassificationService.get_detailed_class_information()
-        return class_info
-    except Exception as e:
-        logger.error(f"Error getting class info: {e}")
-        raise HTTPException(
-            status_code=500, 
-            detail="Error retrieving class information"
+        contents=await file.read()
+        nparr=np.frombuffer(contents,np.uint8)
+        image=cv2.imdecode(nparr,cv2.IMREAD_COLOR)
+        if image is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Could not decode image")
+            
+        # Convert to RGB for classification
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
+        # Perform classification
+        result = ClassificationService.classify_image(image_rgb)
+        
+        #Draw ounding boxes on original image
+        annotated_image=ClassificationService._draw_detections(image,result["detections"])
+        
+        #Encode annotated image 
+        _,encoded_image=cv2.imencode('.jpg',annotated_image)
+        image_bytes=encoded_image.tobytes()
+        return StreamingResponse(
+            io.BytesIO(image_bytes), 
+            media_type="image/jpeg",
+            headers={
+                "X-Detection-Count": str(result["total_objects"]),
+                "X-Processing-Time": f"{result['processing_time']:.3f}"
+            }
         )
+    except Exception as e :
+        logger.error(f"Annotated image error: {e}")
+        raise HTTPException(status_code=500, detail="Error generating annotated image")
+        

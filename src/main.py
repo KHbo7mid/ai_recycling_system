@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from routes.health_check import health
-from routes.classification import router
+from routes import (health,router_classify,batch_router,helper_router)
+
 from helpers.Settings import get_settings
-import uvicorn
+
 app=FastAPI(
     title=get_settings.APP_NAME,
     version=get_settings.APP_VERSION,
@@ -11,6 +11,7 @@ app=FastAPI(
 )
 
 app.include_router(health)
-app.include_router(router)
-
+app.include_router(router_classify)
+app.include_router(batch_router)
+app.include_router(helper_router)
 
